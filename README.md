@@ -1,0 +1,2 @@
+# fortuneTell
+AI算命
