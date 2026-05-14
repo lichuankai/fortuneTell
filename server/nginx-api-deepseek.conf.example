@@ -1,0 +1,22 @@
+# DeepSeek 反代（与前端同源时使用）
+# 在对应 server {} 内、本 location 之前先 include 密钥文件，见 nginx-deepseek-api-key.conf.example
+#
+# 用法：
+# 1. 把下面 location 块复制进你的 server {}；
+# 2. 在同一 server 顶部附近：include /etc/nginx/snippets/deepseek_api_key.conf;
+# 3. 按 nginx-deepseek-api-key.conf.example 创建密钥文件，chmod 600，勿提交 Git。
+
+location /api/deepseek/ {
+    proxy_pass https://api.deepseek.com/v1/;
+    proxy_ssl_server_name on;
+    proxy_set_header Host api.deepseek.com;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+
+    proxy_set_header Authorization "Bearer $deepseek_api_key";
+
+    proxy_connect_timeout 60s;
+    proxy_send_timeout 300s;
+    proxy_read_timeout 300s;
+    proxy_buffering off;
+}

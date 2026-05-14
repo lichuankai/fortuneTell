@@ -30,8 +30,12 @@ export async function callDeepSeekChat(systemPrompt: string, userContent: string
       res.status === 404 || html
         ? " 常见原因：未通过 Vite 开发/预览服务器访问（直接打开 dist 或静态托管未配置转发时，/api/deepseek 会返回 HTML 404）；或部署子路径未与 Vite base 对齐。请使用 npm run dev / npm run preview，或为线上环境配置 API 反向代理。"
         : "";
+    const hint401 =
+      res.status === 401
+        ? " HTTP 401 且非 JSON：多为未带有效 Authorization（请在运行转发服务的环境设置 DEEPSEEK_API_KEY 并重启，见 server/deepseek-proxy.mjs）；或请求被网关返回了 HTML/纯文本。注意：仅把密钥写在构建机 .env 不会注入线上静态页，密钥必须在代理进程或反代层生效。"
+        : "";
     throw new Error(
-      `接口返回非 JSON（HTTP ${res.status}）。请确认已在 .env 配置 DEEPSEEK_API_KEY，且通过可转发 /api/deepseek 的方式访问前端。${hint404}`
+      `接口返回非 JSON（HTTP ${res.status}）。本地开发请在 .env 配置 DEEPSEEK_API_KEY 并用 npm run dev / preview；线上需同源或 VITE_API_PROXY_URL 将 POST /api/deepseek/chat/completions 转发到 DeepSeek 或 Node 代理，且代理侧必须配置密钥。${hint404}${hint401}`
     );
   }
 

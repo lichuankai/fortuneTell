@@ -1,0 +1,46 @@
+# 完整站点示例：HTTPS + 静态前端 + /api/deepseek 反代
+# 本文件内容放在 http { } 内（例如 sites-available/xxx 被 include 进 nginx.conf）。
+# 替换：域名、证书路径、root、下面 include 的密钥文件路径。
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name your-domain.com;
+
+    # 密钥变量（须在本 server 内、且在使用 $deepseek_api_key 的 location 之前）
+    include /etc/nginx/snippets/deepseek_api_key.conf;
+
+    ssl_certificate     /etc/nginx/ssl/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+
+    root /var/www/fortuneTell/dist;
+    index index.html;
+
+    # 前端 SPA
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # DeepSeek：/api/deepseek/chat/completions -> https://api.deepseek.com/v1/chat/completions
+    location /api/deepseek/ {
+        proxy_pass https://api.deepseek.com/v1/;
+        proxy_ssl_server_name on;
+        proxy_set_header Host api.deepseek.com;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_set_header Authorization "Bearer $deepseek_api_key";
+
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+        proxy_buffering off;
+    }
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name your-domain.com;
+    return 301 https://$host$request_uri;
+}
