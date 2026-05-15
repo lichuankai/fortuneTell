@@ -44,7 +44,11 @@ export async function callDeepSeekChat(systemPrompt: string, userContent: string
       typeof data === "object" && data !== null && "error" in data
         ? String((data as { error?: { message?: string } }).error?.message ?? raw)
         : raw;
-    throw new Error(msg || `请求失败（${res.status}）`);
+    const hint401 =
+      res.status === 401
+        ? " 开发：在项目根目录或 fortuneTell/.env.local 配置 DEEPSEEK_API_KEY（或 VITE_DEEPSEEK_API_KEY）后重启 npm run dev；生产：Nginx 须注入有效的 Authorization Bearer。"
+        : "";
+    throw new Error((msg || `请求失败（${res.status}）`) + hint401);
   }
 
   const choices = (data as { choices?: { message?: { content?: string } }[] }).choices;

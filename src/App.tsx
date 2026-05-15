@@ -7,9 +7,17 @@ import { XingzuoPage } from "./pages/XingzuoPage";
 import { ZiWeiPage } from "./pages/ZiWeiPage";
 import "./App.css";
 
+function routerBasename(): string | undefined {
+  // Vite 只保证注入 BASE_URL（带末尾 /），无 import.meta.env.BASE
+  const raw = import.meta.env.BASE_URL ?? "/";
+  if (raw === "/" || raw === "./") return undefined;
+  const trimmed = raw.replace(/\/+$/, "");
+  return trimmed === "" ? undefined : trimmed;
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename()}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/bazi" element={<BaziPage />} />
